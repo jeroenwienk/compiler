@@ -1,4 +1,4 @@
-package nl.saxion.calculator;
+package nl.saxion.compiler;
 
 import java.util.*;
 

@@ -1,4 +1,4 @@
-package nl.saxion.calculator;
+package nl.saxion.compiler;
 
 //import nl.saxion.calclang.antlr4.calculatorLexer;
 //import nl.saxion.calclang.cantlr4.calculatorParser;

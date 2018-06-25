@@ -1,4 +1,4 @@
-package nl.saxion.calculator;
+package nl.saxion.compiler;
 
 public class DataType {
     public static int INT = 0;

@@ -1,4 +1,4 @@
-package nl.saxion.calculator;
+package nl.saxion.compiler;
 
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
