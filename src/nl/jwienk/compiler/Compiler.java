@@ -1,7 +1,5 @@
-package nl.saxion.compiler;
+package nl.jwienk.compiler;
 
-//import nl.saxion.calclang.antlr4.calculatorLexer;
-//import nl.saxion.calclang.cantlr4.calculatorParser;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -14,15 +12,13 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-/**
- * Created by abe23 on 22/03/18.
- */
-public class Calculator {
+public class Compiler {
 
     //used for testing without a file
-    private String defaultCode  = "a=5 ;  b = 4 ; a = 34 + 34 + b / 4 ;\n"+
-            "print a;" +
-            " print 34 + 34 - 8 /4;";
+    private String defaultCode  = "a = 5 ;  b = 4 ; a = 34 + 34 + b / 4 ;\n"+
+            "print(a);" +
+            " print(34 + 2.5 - 8 /4);" +
+            "if (a == 5) { print(b); }";
 
     private String startProg = ".class public {{name}}\n" +
             ".super java/lang/Object\n" +
@@ -68,23 +64,24 @@ public class Calculator {
         }
         // Create lexer and run scanner to create stream of tokens
         CharStream charStream = CharStreams.fromString(compileString);
-        CalculatorLexer lexer = new CalculatorLexer(charStream);
+        CompilerLexer lexer = new CompilerLexer(charStream);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 
         // Create parser and feed it the tokens
-        CalculatorParser parser = new CalculatorParser(tokens);
+        CompilerParser parser = new CompilerParser(tokens);
         ParseTree program = parser.program();
 
         TypeVisitor typeVisitor = new TypeVisitor();
         typeVisitor.visit(program);
 
-        CalcVisitor visitor = new CalcVisitor(name, typeVisitor.getTypes());
+        CompVisitor visitor = new CompVisitor(name, typeVisitor.getTypes());
         ArrayList<String> prog  = visitor.visit(program);
 
 
-        System.out.println("## DEFAULTCODE ##");
+
+        System.out.println("\n## DEFAULTCODE START ##");
         System.out.println(defaultCode);
-        System.out.println("");
+        System.out.println("## DEFAULTCODE END ##\n");
 
         // Output fixed part of the Jasmin file (except for the name)
         System.out.println(startProg.replaceAll("\\{\\{name\\}\\}",name));
@@ -96,7 +93,7 @@ public class Calculator {
 
 
     public static void main(String[] args) {
-        Calculator calc = new Calculator();
+        Compiler calc = new Compiler();
         calc.compile(args);
 
     }

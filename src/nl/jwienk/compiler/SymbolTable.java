@@ -1,4 +1,5 @@
-package nl.saxion.compiler;
+package nl.jwienk.compiler;
+
 
 import java.util.*;
 
@@ -47,7 +48,6 @@ public class SymbolTable {
     public int currentLevel() {
         return scopeStack.size();
     }
-
 
 
 }
