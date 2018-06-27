@@ -2,12 +2,16 @@ package nl.jwienk.compiler;
 
 //TODO associate context
 
+import org.antlr.v4.runtime.tree.ParseTree;
+
 public class Symbol {
+    private ParseTree ctx;
     private String name;
     private Type type;
-    private String address;
+    private int address;
 
-    public Symbol(String name, Type type) {
+    public Symbol(ParseTree ctx, String name, Type type) {
+        this.ctx = ctx;
         this.name = name;
         this.type = type;
     }
@@ -20,11 +24,11 @@ public class Symbol {
         return type;
     }
 
-    public String getAddress() {
+    public int getAddress() {
         return address;
     }
 
-    public void setAddress(String address) {
+    public void setAddress(int address) {
         this.address = address;
     }
 

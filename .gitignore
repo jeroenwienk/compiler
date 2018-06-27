@@ -1,3 +1,11 @@
 /gen
-.idea/
 /out
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+*.class
+*.j

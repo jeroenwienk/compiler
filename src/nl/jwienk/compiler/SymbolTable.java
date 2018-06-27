@@ -38,7 +38,7 @@ public class SymbolTable {
 
     public Symbol retrieve(String name) {
 
-        if (symbolTable.get(name) != null) {
+        if (symbolTable.get(name) != null && !symbolTable.get(name).empty()) {
             return symbolTable.get(name).peek();
         }
 

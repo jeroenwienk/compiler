@@ -18,12 +18,10 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
 
     @Override
     public Type visitProgram(CompilerParser.ProgramContext ctx) {
-        System.out.println("# VISITING Program");
+        //System.out.println("# VISITING Program");
         // Open a scope for the root
         this.symbolTable.openScope();
-
         visitChildren(ctx);
-
         this.symbolTable.closeScope();
 
         return null;
@@ -31,7 +29,7 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
 
     @Override
     public Type visitBlockStatement(CompilerParser.BlockStatementContext ctx) {
-        System.out.println("# VISITING Block");
+        //System.out.println("# VISITING Block");
 
         this.symbolTable.openScope();
         visitChildren(ctx);
@@ -42,18 +40,19 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
 
     @Override
     public Type visitVariableStatement(CompilerParser.VariableStatementContext ctx) {
-        System.out.println("# VISITING VariableStatement");
+        //System.out.println("# VISITING VariableStatement");
         Type type = visit(ctx.variableStat().expression());
 
+
         // a variable is being assigned so we have to save the type of this value for when it gets referenced
-        symbolTable.enter(ctx.variableStat().IDENTIFIER().getText(), new Symbol(ctx.variableStat().IDENTIFIER().getText(), type));
+        symbolTable.enter(ctx.variableStat().IDENTIFIER().getText(), new Symbol(ctx, ctx.variableStat().IDENTIFIER().getText(), type));
         types.put(ctx, type);
         return type;
     }
 
     @Override
     public Type visitPrintStatement(CompilerParser.PrintStatementContext ctx) {
-        System.out.println("# VISITING PrintStatement");
+        //System.out.println("# VISITING PrintStatement");
         Type expressionType = visit(ctx.printStat().expression());
 
         this.types.put(ctx, Type.METHOD);
@@ -62,7 +61,7 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
 
     @Override
     public Type visitIfStatement(CompilerParser.IfStatementContext ctx) {
-        System.out.println("# VISITING IfStatement");
+        //System.out.println("# VISITING IfStatement");
         Type expressionType = visit(ctx.ifStat().expression());
 
         if (expressionType != Type.BOOLEAN) {
@@ -78,15 +77,14 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
     public Type visitParenthesesExpression(CompilerParser.ParenthesesExpressionContext ctx) {
         Type expressionType = visit(ctx.expression());
         this.types.put(ctx, expressionType);
-
-        return null;
+        return expressionType;
     }
 
     @Override
     public Type visitNegateExpression(CompilerParser.NegateExpressionContext ctx) {
         Type expressionType = visit(ctx.expression());
         this.types.put(ctx, expressionType);
-        return null;
+        return expressionType;
     }
 
     @Override
@@ -98,8 +96,11 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
             throw new CompilerException(ctx, "Incompatible types: " + leftType + " " + rightType);
         }
 
+        Type returnType = TypeChecker.getReturnType(leftType, rightType);
+
         this.types.put(ctx.left, leftType);
         this.types.put(ctx.right, rightType);
+        this.types.put(ctx, returnType);
 
         return TypeChecker.getReturnType(leftType, rightType);
     }
@@ -113,8 +114,11 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
             throw new CompilerException(ctx, "Incompatible types: " + leftType + " " + rightType);
         }
 
+        Type returnType = TypeChecker.getReturnType(leftType, rightType);
+
         this.types.put(ctx.left, leftType);
         this.types.put(ctx.right, rightType);
+        this.types.put(ctx, returnType);
 
         return TypeChecker.getReturnType(leftType, rightType);
     }

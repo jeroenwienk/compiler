@@ -6,16 +6,21 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
+
+// TODO ADD LIMITS AND LOCALS!!!!!!!
+
 public class Compiler {
 
     //used for testing without a file
-    private String defaultCode  = "a = 5 ;  b = 4 ; a = 34 + 34 + b / 4 ;\n"+
+    private String defaultCode = "a = 5 ;  b = 4 ; a = 34 + 34 + b / 4 ;\n" +
             "print(a);" +
             " print(34 + 2.5 - 8 /4);" +
             "if (a == 5) { print(b); }";
@@ -35,7 +40,9 @@ public class Compiler {
             ";\n" +
             "; main() method\n" +
             ";\n" +
-            ".method public static main([Ljava/lang/String;)V\n";
+            ".method public static main([Ljava/lang/String;)V\n" +
+            ".limit locals 100\n" +
+            ".limit stack 100\n";
 
 
     private String endProg = "\n\nreturn\n\n.end method";
@@ -62,6 +69,7 @@ public class Compiler {
             if (name.lastIndexOf(".") > -1)
                 name = name.substring(0, name.lastIndexOf("."));
         }
+
         // Create lexer and run scanner to create stream of tokens
         CharStream charStream = CharStreams.fromString(compileString);
         CompilerLexer lexer = new CompilerLexer(charStream);
@@ -75,20 +83,33 @@ public class Compiler {
         typeVisitor.visit(program);
 
         CompVisitor visitor = new CompVisitor(name, typeVisitor.getTypes());
-        ArrayList<String> prog  = visitor.visit(program);
+        ArrayList<String> prog = visitor.visit(program);
 
-
-
-        System.out.println("\n## DEFAULTCODE START ##");
+        System.out.println("\n\t\t## CODE START ##\n");
         System.out.println(defaultCode);
-        System.out.println("## DEFAULTCODE END ##\n");
+        System.out.println("\n\t\t## CODE END ##\n");
 
-        // Output fixed part of the Jasmin file (except for the name)
-        System.out.println(startProg.replaceAll("\\{\\{name\\}\\}",name));
-        // Output compiled part of the jasmin file
-        System.out.println(prog.stream().collect(Collectors.joining("\n")));
-        // Output footer of jasmin file
-        System.out.println(endProg);
+        String outputString = startProg.replaceAll("\\{\\{name\\}\\}", name) + prog.stream().collect(Collectors.joining("\n")) + endProg;
+
+        System.out.println("\n\t\t## OUTPUT START ##\n");
+        System.out.println(outputString);
+        System.out.println("\n\t\t## OUTPUT END ##\n");
+
+        String fileName = name + ".j";
+
+        try (PrintWriter out = new PrintWriter(name + ".j")) {
+            out.println(outputString);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        Executor executor = new Executor();
+
+        executor.executeJar("jasmin.jar", fileName);
+        executor.execute(name);
+
+        System.out.println(executor.getExecutionLog());
+
     }
 
 
