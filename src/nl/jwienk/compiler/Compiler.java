@@ -40,9 +40,7 @@ public class Compiler {
             ";\n" +
             "; main() method\n" +
             ";\n" +
-            ".method public static main([Ljava/lang/String;)V\n" +
-            ".limit locals 100\n" +
-            ".limit stack 100\n";
+            ".method public static main([Ljava/lang/String;)V\n";
 
 
     private String endProg = "\n\nreturn\n\n.end method";

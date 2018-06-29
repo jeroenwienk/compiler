@@ -1,7 +1,5 @@
 package nl.jwienk.compiler;
 
-//TODO associate context
-
 import org.antlr.v4.runtime.tree.ParseTree;
 
 public class Symbol {
@@ -22,6 +20,10 @@ public class Symbol {
 
     public Type getType() {
         return type;
+    }
+
+    public ParseTree getCtx() {
+        return ctx;
     }
 
     public int getAddress() {

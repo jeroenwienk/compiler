@@ -1,11 +1,5 @@
-a = 1;
-b = 2;
-c = 3;
+b = 2.5;
+c = 3.4;
+a = 2.5 + 3.4 * b / 2.0;
 
-if (a == 6 || b == 3 || c == 4) {
-    print(a);
-} else if (!(b == 3)) {
-    print(b);
-} else {
-    print(c);
-}
+print(a);

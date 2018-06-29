@@ -54,15 +54,16 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
     @Override
     public Type visitPrintStatement(CompilerParser.PrintStatementContext ctx) {
         //System.out.println("# VISITING PrintStatement");
-        Type expressionType = visit(ctx.expression());
 
         this.types.put(ctx, Type.METHOD);
+        visit(ctx.expression());
         return Type.METHOD;
     }
 
     @Override
     public Type visitIfStatement(CompilerParser.IfStatementContext ctx) {
         //System.out.println("# VISITING IfStatement");
+
         Type expressionType = visit(ctx.expression());
 
         if (expressionType != Type.BOOLEAN) {
@@ -76,6 +77,8 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
 
     @Override
     public Type visitParenthesesExpression(CompilerParser.ParenthesesExpressionContext ctx) {
+        //System.out.println("# VISITING ParenthesesExpression");
+
         Type expressionType = visit(ctx.expression());
         this.types.put(ctx, expressionType);
         return expressionType;
@@ -83,6 +86,8 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
 
     @Override
     public Type visitNegateExpression(CompilerParser.NegateExpressionContext ctx) {
+        //System.out.println("# VISITING NegateExpression");
+
         Type expressionType = visit(ctx.expression());
         this.types.put(ctx, expressionType);
         return expressionType;
@@ -90,6 +95,8 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
 
     @Override
     public Type visitAddSubExpression(CompilerParser.AddSubExpressionContext ctx) {
+        //System.out.println("# VISITING AddSubExpression");
+
         Type leftType = visit(ctx.left);
         Type rightType = visit(ctx.right);
 
@@ -103,11 +110,13 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
         this.types.put(ctx.right, rightType);
         this.types.put(ctx, returnType);
 
-        return Type.getReturnType(leftType, rightType);
+        return returnType;
     }
 
     @Override
     public Type visitMulDivExpression(CompilerParser.MulDivExpressionContext ctx) {
+        //System.out.println("# VISITING MulDivExpression");
+
         Type leftType = visit(ctx.left);
         Type rightType = visit(ctx.right);
 
@@ -121,11 +130,13 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
         this.types.put(ctx.right, rightType);
         this.types.put(ctx, returnType);
 
-        return Type.getReturnType(leftType, rightType);
+        return returnType;
     }
 
     @Override
     public Type visitComparisonExpression(CompilerParser.ComparisonExpressionContext ctx) {
+        //System.out.println("# VISITING ComparisonExpression");
+
         Type leftType = visit(ctx.left);
         Type rightType = visit(ctx.right);
 
@@ -133,45 +144,75 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
             throw new CompilerException(ctx, "Incompatible types: " + leftType + " " + rightType);
         }
 
-        Type returnType = Type.getReturnType(leftType, rightType);
-
         this.types.put(ctx.left, leftType);
         this.types.put(ctx.right, rightType);
-        this.types.put(ctx, returnType);
 
         return Type.BOOLEAN;
     }
 
     @Override
     public Type visitLogicalExpression(CompilerParser.LogicalExpressionContext ctx) {
-        Type leftExpressionType = visit(ctx.left);
-        Type rightExpressionType = visit(ctx.right);
-        String operator = ctx.op.getText();
+        //System.out.println("# VISITING LogicalExpression");
+
+        Type leftType = visit(ctx.left);
+        Type rightType = visit(ctx.right);
+
+        if (!Type.areCompatible(leftType, rightType)) {
+            throw new CompilerException(ctx, "Incompatible types: " + leftType + " " + rightType);
+        }
+
+        this.types.put(ctx.left, leftType);
+        this.types.put(ctx.right, rightType);
+
+
+        return Type.BOOLEAN;
+    }
+
+    @Override
+    public Type visitNotExpression(CompilerParser.NotExpressionContext ctx) {
+        //System.out.println("# VISITING NotExpression");
 
         Type type = Type.BOOLEAN;
+        Type expressionType = visit(ctx.expression());
+
+        if (expressionType != Type.BOOLEAN) {
+            throw new CompilerException(ctx, "! operator can only be applied to boolean values");
+        }
+
         this.types.put(ctx, type);
         return type;
     }
 
     @Override
-    public Type visitNotExpression(CompilerParser.NotExpressionContext ctx) {
-        Type type = Type.BOOLEAN;
+    public Type visitWhileStatement(CompilerParser.WhileStatementContext ctx) {
+        //System.out.println("# VISITING WhileStatement");
 
+
+        Type type = Type.STATEMENT;
+        Type expressionType = visit(ctx.expression());
+
+        if (expressionType != Type.BOOLEAN) {
+            throw new CompilerException(ctx, "while expression should evaluate to boolean value");
+        }
+
+        visit(ctx.statement());
+
+
+        this.types.put(ctx, type);
         return type;
     }
 
     @Override
-    public Type visitWhileStatement(CompilerParser.WhileStatementContext ctx) {
-        return null;
-    }
-
-    @Override
     public Type visitForStatement(CompilerParser.ForStatementContext ctx) {
+        //System.out.println("# VISITING ForStatement");
+
         return null;
     }
 
     @Override
     public Type visitIntConstExpression(CompilerParser.IntConstExpressionContext ctx) {
+        //System.out.println("# VISITING IntConstExpression");
+
         Type type = Type.INT;
         this.types.put(ctx, type);
         return type;
@@ -179,6 +220,8 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
 
     @Override
     public Type visitDoubleConstExpression(CompilerParser.DoubleConstExpressionContext ctx) {
+        //System.out.println("# VISITING DoubleConstExpression");
+
         Type type = Type.DOUBLE;
         this.types.put(ctx, type);
         return type;
@@ -186,6 +229,8 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
 
     @Override
     public Type visitBooleanConstExpression(CompilerParser.BooleanConstExpressionContext ctx) {
+        //System.out.println("# VISITING BooleanConstExpression");
+
         Type type = Type.BOOLEAN;
         this.types.put(ctx, type);
         return type;
@@ -193,6 +238,8 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
 
     @Override
     public Type visitVariableConstExpression(CompilerParser.VariableConstExpressionContext ctx) {
+        //System.out.println("# VISITING VariableConstExpression");
+
         Symbol symbol = symbolTable.retrieve(ctx.getText());
 
         if (symbol != null) {
