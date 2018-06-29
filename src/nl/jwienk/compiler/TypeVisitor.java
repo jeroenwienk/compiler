@@ -155,7 +155,9 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
 
     @Override
     public Type visitNotExpression(CompilerParser.NotExpressionContext ctx) {
-        return null;
+        Type type = Type.BOOLEAN;
+
+        return type;
     }
 
     @Override

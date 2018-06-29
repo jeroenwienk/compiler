@@ -53,6 +53,10 @@ public class Helper {
                 return "lt";
             case "<=":
                 return "le";
+            case "&&":
+                return "iand";
+            case "||":
+                return "ior";
             default:
                 return null;
 

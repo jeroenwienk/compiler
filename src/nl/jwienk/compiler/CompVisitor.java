@@ -121,37 +121,6 @@ public class CompVisitor extends CompilerBaseVisitor<ArrayList<String>> {
     }
 
     @Override
-    public ArrayList<String> visitIfStatement(CompilerParser.IfStatementContext ctx) {
-        ArrayList<String> code = new ArrayList<>();
-
-
-        labelCount++;
-        int count = labelCount;
-
-        String label = "endif_" + count;
-
-        code.addAll(visit(ctx.expression()));
-
-        //code.set(code.size() - 1, code.get(code.size() - 1) + " then_" + labelCount);
-        code.add("else_" + count + ":");
-        if (ctx.ELSE() != null && ctx.statement().get(1) != null) {
-            code.addAll(visit(ctx.statement().get(1)));
-        }
-
-        code.add("goto " + label);
-        code.add("then_" + count + ":");
-
-        System.out.println(ctx.statement().get(0));
-
-        if (ctx.statement().get(0) != null) {
-            code.addAll(visit(ctx.statement().get(0)));
-        }
-
-        code.add(label + ":");
-        return code;
-    }
-
-    @Override
     public ArrayList<String> visitParenthesesExpression(CompilerParser.ParenthesesExpressionContext ctx) {
         ArrayList<String> code = new ArrayList<>();
         code.addAll(visit(ctx.expression()));
@@ -226,14 +195,49 @@ public class CompVisitor extends CompilerBaseVisitor<ArrayList<String>> {
     }
 
     @Override
+    public ArrayList<String> visitIfStatement(CompilerParser.IfStatementContext ctx) {
+
+
+        int localLabelCount = ++labelCount;
+
+
+        ArrayList<String> code = new ArrayList<>();
+        code.addAll(visit(ctx.expression()));
+
+
+        String endLabel = "end_if_" + localLabelCount;
+        String thenLabel = "then_if_" + localLabelCount;
+        String elseLabel = "else_if_" + localLabelCount;
+
+        code.add("ifne " + thenLabel);
+
+        code.add(elseLabel + ":");
+        if (ctx.ELSE() != null && ctx.statement(1) != null) {
+            code.addAll(visit(ctx.statement(1)));
+            code.add("goto " + endLabel);
+        }
+
+        code.add(thenLabel + ":");
+        code.addAll(visit(ctx.statement(0)));
+        code.add(endLabel + ":"); // Jump to here when condition == 0
+        return code;
+    }
+
+    @Override
     public ArrayList<String> visitComparisonExpression(CompilerParser.ComparisonExpressionContext ctx) {
         ArrayList<String> code = new ArrayList<>();
-
         String operator = Helper.getOperatorAsWord(ctx.op.getText());
+        int localLabelCount = ++labelCount;
 
         code.addAll(visit(ctx.left));
         code.addAll(visit(ctx.right));
-        code.add("if_icmp" + operator + " then_" + labelCount);
+        code.add("if_icmp" + operator + " then_c_" + localLabelCount);
+        code.add("else_c_" + localLabelCount + ":");
+        code.add("iconst_0");
+        code.add("goto end_c_" + localLabelCount);
+        code.add("then_c_" + localLabelCount + ":");
+        code.add("iconst_1");
+        code.add("end_c_" + localLabelCount + ":");
 
         return code;
     }
@@ -241,18 +245,28 @@ public class CompVisitor extends CompilerBaseVisitor<ArrayList<String>> {
     @Override
     public ArrayList<String> visitLogicalExpression(CompilerParser.LogicalExpressionContext ctx) {
         ArrayList<String> code = new ArrayList<>();
-
         String operator = Helper.getOperatorAsWord(ctx.op.getText());
-
         code.addAll(visit(ctx.left));
         code.addAll(visit(ctx.right));
-
+        code.add(operator);
         return code;
     }
 
     @Override
     public ArrayList<String> visitNotExpression(CompilerParser.NotExpressionContext ctx) {
-        return new ArrayList<>();
+        ArrayList<String> code = new ArrayList<>();
+
+
+        code.addAll(visitChildren(ctx));
+
+
+        // there has to be some easier bitwise flip solution
+        code.add("iconst_1");
+        code.add("iadd");
+        code.add("iconst_2");
+        code.add("irem");
+
+        return code;
     }
 
     @Override

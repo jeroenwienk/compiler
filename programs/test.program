@@ -1,6 +1,11 @@
 a = 1;
 b = 2;
+c = 3;
 
-if (a == 1 && b == 2) {
+if (a == 6 || b == 3 || c == 4) {
     print(a);
+} else if (!(b == 3)) {
+    print(b);
+} else {
+    print(c);
 }
