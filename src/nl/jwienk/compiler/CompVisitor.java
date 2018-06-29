@@ -4,15 +4,13 @@ import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
 import java.util.ArrayList;
 
-/**
- * Created by abe23 on 22/03/18.
- */
 public class CompVisitor extends CompilerBaseVisitor<ArrayList<String>> {
 
     private String name;
     private SymbolTable symbolTable;
     private ParseTreeProperty<Type> types;
     private int storeIndex = 1;
+    private int labelCount = 0;
 
     public CompVisitor(String name, ParseTreeProperty<Type> types) {
         this.name = name;
@@ -39,7 +37,6 @@ public class CompVisitor extends CompilerBaseVisitor<ArrayList<String>> {
     }
 
 
-
     @Override
     public ArrayList<String> visitBlockStatement(CompilerParser.BlockStatementContext ctx) {
         System.out.println("# VISITING BlockStatement");
@@ -48,8 +45,10 @@ public class CompVisitor extends CompilerBaseVisitor<ArrayList<String>> {
 
         ArrayList<String> code = new ArrayList<>();
 
-        for (CompilerParser.StatementContext statement : ctx.block().statementList().statement()) {
-            code.addAll(visit(statement));
+        if (ctx.statementList() != null) {
+            for (CompilerParser.StatementContext statement : ctx.statementList().statement()) {
+                code.addAll(visit(statement));
+            }
         }
 
         this.symbolTable.closeScope();
@@ -66,7 +65,7 @@ public class CompVisitor extends CompilerBaseVisitor<ArrayList<String>> {
 
         int storeAddress = this.storeIndex;
 
-        String identifier = ctx.variableStat().IDENTIFIER().getText();
+        String identifier = ctx.IDENTIFIER().getText();
         Symbol oldSymbol = symbolTable.retrieve(identifier);
 
         if (oldSymbol != null) {
@@ -77,17 +76,17 @@ public class CompVisitor extends CompilerBaseVisitor<ArrayList<String>> {
 
         String mnemonic = Helper.getTypeMnemonic(type);
 
-        switch( type ) {
+        switch (type) {
             case INT:
-                code.addAll(visit(ctx.variableStat().expression()));
+                code.addAll(visit(ctx.expression()));
                 code.add(mnemonic + "store " + storeAddress);
                 break;
             case DOUBLE:
-                code.addAll(visit(ctx.variableStat().expression()));
+                code.addAll(visit(ctx.expression()));
                 code.add(mnemonic + "store " + storeAddress);
                 break;
             case BOOLEAN:
-                code.addAll(visit(ctx.variableStat().expression()));
+                code.addAll(visit(ctx.expression()));
                 code.add(mnemonic + "store " + storeAddress);
                 break;
             case STRING:
@@ -107,16 +106,15 @@ public class CompVisitor extends CompilerBaseVisitor<ArrayList<String>> {
     }
 
 
-
     @Override
     public ArrayList<String> visitPrintStatement(CompilerParser.PrintStatementContext ctx) {
         System.out.println("# VISITING PrintStatement");
         ArrayList<String> code = new ArrayList<>();
 
-        Type expressionType = types.get(ctx.printStat().expression());
+        Type expressionType = types.get(ctx.expression());
 
         code.add("getstatic java/lang/System/out Ljava/io/PrintStream;");
-        code.addAll(visit(ctx.printStat().expression()));
+        code.addAll(visit(ctx.expression()));
         code.add("invokevirtual java/io/PrintStream/println(" + Helper.getTypeDescriptor(expressionType) + ")V");
 
         return code;
@@ -124,7 +122,33 @@ public class CompVisitor extends CompilerBaseVisitor<ArrayList<String>> {
 
     @Override
     public ArrayList<String> visitIfStatement(CompilerParser.IfStatementContext ctx) {
-        return visitChildren(ctx);
+        ArrayList<String> code = new ArrayList<>();
+
+
+        labelCount++;
+        int count = labelCount;
+
+        String label = "endif_" + count;
+
+        code.addAll(visit(ctx.expression()));
+
+        //code.set(code.size() - 1, code.get(code.size() - 1) + " then_" + labelCount);
+        code.add("else_" + count + ":");
+        if (ctx.ELSE() != null && ctx.statement().get(1) != null) {
+            code.addAll(visit(ctx.statement().get(1)));
+        }
+
+        code.add("goto " + label);
+        code.add("then_" + count + ":");
+
+        System.out.println(ctx.statement().get(0));
+
+        if (ctx.statement().get(0) != null) {
+            code.addAll(visit(ctx.statement().get(0)));
+        }
+
+        code.add(label + ":");
+        return code;
     }
 
     @Override
@@ -202,7 +226,42 @@ public class CompVisitor extends CompilerBaseVisitor<ArrayList<String>> {
     }
 
     @Override
-    public ArrayList<String> visitBooleanExpression(CompilerParser.BooleanExpressionContext ctx) {
+    public ArrayList<String> visitComparisonExpression(CompilerParser.ComparisonExpressionContext ctx) {
+        ArrayList<String> code = new ArrayList<>();
+
+        String operator = Helper.getOperatorAsWord(ctx.op.getText());
+
+        code.addAll(visit(ctx.left));
+        code.addAll(visit(ctx.right));
+        code.add("if_icmp" + operator + " then_" + labelCount);
+
+        return code;
+    }
+
+    @Override
+    public ArrayList<String> visitLogicalExpression(CompilerParser.LogicalExpressionContext ctx) {
+        ArrayList<String> code = new ArrayList<>();
+
+        String operator = Helper.getOperatorAsWord(ctx.op.getText());
+
+        code.addAll(visit(ctx.left));
+        code.addAll(visit(ctx.right));
+
+        return code;
+    }
+
+    @Override
+    public ArrayList<String> visitNotExpression(CompilerParser.NotExpressionContext ctx) {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public ArrayList<String> visitWhileStatement(CompilerParser.WhileStatementContext ctx) {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public ArrayList<String> visitForStatement(CompilerParser.ForStatementContext ctx) {
         return new ArrayList<>();
     }
 
@@ -243,27 +302,12 @@ public class CompVisitor extends CompilerBaseVisitor<ArrayList<String>> {
     }
 
     @Override
-    public ArrayList<String> visitVariableStat(CompilerParser.VariableStatContext ctx) {
-        return visitChildren(ctx);
-    }
-
-    @Override
-    public ArrayList<String> visitIfStat(CompilerParser.IfStatContext ctx) {
-        return visitChildren(ctx);
-    }
-
-    @Override
-    public ArrayList<String> visitPrintStat(CompilerParser.PrintStatContext ctx) {
+    public ArrayList<String> visitStatement(CompilerParser.StatementContext ctx) {
         return visitChildren(ctx);
     }
 
     @Override
     public ArrayList<String> visitStatementList(CompilerParser.StatementListContext ctx) {
-        return visitChildren(ctx);
-    }
-
-    @Override
-    public ArrayList<String> visitBlock(CompilerParser.BlockContext ctx) {
         return visitChildren(ctx);
     }
 }

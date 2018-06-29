@@ -41,6 +41,18 @@ public class Helper {
                 return "div";
             case "%":
                 return "rem";
+            case "==":
+                return "eq";
+            case "!=":
+                return "ne";
+            case ">":
+                return "gt";
+            case ">=":
+                return "ge";
+            case "<":
+                return "lt";
+            case "<=":
+                return "le";
             default:
                 return null;
 

@@ -40,7 +40,7 @@ public class Executor {
                 throw new IOException("Failed to execute, " + this.getExecutionLog());
             }
 
-        } catch (final IOException | InterruptedException e) {
+        } catch (final Exception e) {
            e.printStackTrace();
         }
     }
@@ -52,21 +52,24 @@ public class Executor {
             while ((line = this.error.readLine()) != null) {
                 error.append("\n").append(line);
             }
-        } catch (final IOException ignored) {
+        } catch (final Exception e) {
+            e.printStackTrace();
         }
         StringBuilder output = new StringBuilder();
         try {
             while ((line = this.op.readLine()) != null) {
                 output.append("\n").append(line);
             }
-        } catch (final IOException ignored) {
+        } catch (final Exception e) {
+            e.printStackTrace();
         }
         try {
             this.error.close();
             this.op.close();
-        } catch (final IOException ignored) {
+        } catch (final Exception e) {
+            e.printStackTrace();
         }
-        return "exit: " + this.exitVal + ", error: " + error + ", output:\n" + output;
+        return "exit: " + this.exitVal + ", error: " + error + ", result:\n" + output;
     }
 
 }

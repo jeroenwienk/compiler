@@ -41,11 +41,12 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
     @Override
     public Type visitVariableStatement(CompilerParser.VariableStatementContext ctx) {
         //System.out.println("# VISITING VariableStatement");
-        Type type = visit(ctx.variableStat().expression());
+        Type type = visit(ctx.expression());
+        String identifier = ctx.IDENTIFIER().getText();
 
 
         // a variable is being assigned so we have to save the type of this value for when it gets referenced
-        symbolTable.enter(ctx.variableStat().IDENTIFIER().getText(), new Symbol(ctx, ctx.variableStat().IDENTIFIER().getText(), type));
+        symbolTable.enter(identifier, new Symbol(ctx, identifier, type));
         types.put(ctx, type);
         return type;
     }
@@ -53,7 +54,7 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
     @Override
     public Type visitPrintStatement(CompilerParser.PrintStatementContext ctx) {
         //System.out.println("# VISITING PrintStatement");
-        Type expressionType = visit(ctx.printStat().expression());
+        Type expressionType = visit(ctx.expression());
 
         this.types.put(ctx, Type.METHOD);
         return Type.METHOD;
@@ -62,7 +63,7 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
     @Override
     public Type visitIfStatement(CompilerParser.IfStatementContext ctx) {
         //System.out.println("# VISITING IfStatement");
-        Type expressionType = visit(ctx.ifStat().expression());
+        Type expressionType = visit(ctx.expression());
 
         if (expressionType != Type.BOOLEAN) {
             throw new CompilerException(ctx, "Expression should evaluate to a boolean value");
@@ -92,17 +93,17 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
         Type leftType = visit(ctx.left);
         Type rightType = visit(ctx.right);
 
-        if (!TypeChecker.areCompatible(leftType, rightType)) {
+        if (!Type.areCompatible(leftType, rightType)) {
             throw new CompilerException(ctx, "Incompatible types: " + leftType + " " + rightType);
         }
 
-        Type returnType = TypeChecker.getReturnType(leftType, rightType);
+        Type returnType = Type.getReturnType(leftType, rightType);
 
         this.types.put(ctx.left, leftType);
         this.types.put(ctx.right, rightType);
         this.types.put(ctx, returnType);
 
-        return TypeChecker.getReturnType(leftType, rightType);
+        return Type.getReturnType(leftType, rightType);
     }
 
     @Override
@@ -110,21 +111,39 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
         Type leftType = visit(ctx.left);
         Type rightType = visit(ctx.right);
 
-        if (!TypeChecker.areCompatible(leftType, rightType)) {
+        if (!Type.areCompatible(leftType, rightType)) {
             throw new CompilerException(ctx, "Incompatible types: " + leftType + " " + rightType);
         }
 
-        Type returnType = TypeChecker.getReturnType(leftType, rightType);
+        Type returnType = Type.getReturnType(leftType, rightType);
 
         this.types.put(ctx.left, leftType);
         this.types.put(ctx.right, rightType);
         this.types.put(ctx, returnType);
 
-        return TypeChecker.getReturnType(leftType, rightType);
+        return Type.getReturnType(leftType, rightType);
     }
 
     @Override
-    public Type visitBooleanExpression(CompilerParser.BooleanExpressionContext ctx) {
+    public Type visitComparisonExpression(CompilerParser.ComparisonExpressionContext ctx) {
+        Type leftType = visit(ctx.left);
+        Type rightType = visit(ctx.right);
+
+        if (!Type.areCompatible(leftType, rightType)) {
+            throw new CompilerException(ctx, "Incompatible types: " + leftType + " " + rightType);
+        }
+
+        Type returnType = Type.getReturnType(leftType, rightType);
+
+        this.types.put(ctx.left, leftType);
+        this.types.put(ctx.right, rightType);
+        this.types.put(ctx, returnType);
+
+        return Type.BOOLEAN;
+    }
+
+    @Override
+    public Type visitLogicalExpression(CompilerParser.LogicalExpressionContext ctx) {
         Type leftExpressionType = visit(ctx.left);
         Type rightExpressionType = visit(ctx.right);
         String operator = ctx.op.getText();
@@ -132,6 +151,21 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
         Type type = Type.BOOLEAN;
         this.types.put(ctx, type);
         return type;
+    }
+
+    @Override
+    public Type visitNotExpression(CompilerParser.NotExpressionContext ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitWhileStatement(CompilerParser.WhileStatementContext ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitForStatement(CompilerParser.ForStatementContext ctx) {
+        return null;
     }
 
     @Override
@@ -171,32 +205,12 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
     }
 
     @Override
-    public Type visitVariableStat(CompilerParser.VariableStatContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override
-    public Type visitIfStat(CompilerParser.IfStatContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override
-    public Type visitPrintStat(CompilerParser.PrintStatContext ctx) {
-        visitChildren(ctx);
-        return null;
+    public Type visitStatement(CompilerParser.StatementContext ctx) {
+        return visitChildren(ctx);
     }
 
     @Override
     public Type visitStatementList(CompilerParser.StatementListContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override
-    public Type visitBlock(CompilerParser.BlockContext ctx) {
-        visitChildren(ctx);
-        return null;
+        return visitChildren(ctx);
     }
 }

@@ -86,7 +86,7 @@ public class Compiler {
         ArrayList<String> prog = visitor.visit(program);
 
         System.out.println("\n\t\t## CODE START ##\n");
-        System.out.println(defaultCode);
+        System.out.println(compileString);
         System.out.println("\n\t\t## CODE END ##\n");
 
         String outputString = startProg.replaceAll("\\{\\{name\\}\\}", name) + prog.stream().collect(Collectors.joining("\n")) + endProg;
@@ -106,16 +106,16 @@ public class Compiler {
         Executor executor = new Executor();
 
         executor.executeJar("jasmin.jar", fileName);
+        System.out.println(executor.getExecutionLog());
         executor.execute(name);
-
         System.out.println(executor.getExecutionLog());
 
     }
 
 
     public static void main(String[] args) {
-        Compiler calc = new Compiler();
-        calc.compile(args);
+        Compiler compiler = new Compiler();
+        compiler.compile(args);
 
     }
 

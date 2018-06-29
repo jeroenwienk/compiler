@@ -1,37 +1,45 @@
 grammar Compiler;
 
-
-program : statement*  ;
-
-
-statement : block              # BlockStatement
-  |  variableStat              # VariableStatement
-  |  ifStat                    # IfStatement
-  |  printStat                 # PrintStatement
+program
+  : statement*
   ;
 
+statement
+  :  blockStatement
+  |  variableStatement
+  |  ifStatement
+  |  iterationStatement
+  |  printStatement
+  ;
 
-expression : '(' expression ')'                                                   #ParenthesesExpression
+expression
+  : '(' expression ')'                                                            #ParenthesesExpression
+  | '!' expression                                                                #NotExpression
   | '-' expression                                                                #NegateExpression
   | left=expression op=('*' | '/') right=expression                               #MulDivExpression
   | left=expression op=( '+' | '-' ) right=expression                             #AddSubExpression
-  | left=expression op=('<' | '<=' | '>' | '>=' | '==' | '!=' ) right=expression  #BooleanExpression
+  | left=expression op=('<' | '<=' | '>' | '>=' | '==' | '!=' ) right=expression  #ComparisonExpression
+  | left=expression op=('&&' | '||') right=expression                             #LogicalExpression
   | INT                                                                           #IntConstExpression
   | DOUBLE                                                                        #DoubleConstExpression
   | BOOLEAN                                                                       #BooleanConstExpression
   | IDENTIFIER                                                                    #VariableConstExpression
   ;
 
-variableStat
+variableStatement
   : IDENTIFIER EQUALS expression ';'
   ;
 
-
-ifStat
+ifStatement
   : IF '(' expression ')' statement ( ELSE statement )?
   ;
 
-printStat
+iterationStatement
+  : WHILE '(' expression ')' statement                                    # WhileStatement
+  | FOR '(' expression? ';' expression? ';' expression? ')' statement     # ForStatement
+  ;
+
+printStatement
   : PRINT '(' expression ');'
   ;
 
@@ -39,15 +47,17 @@ statementList
   : statement+
   ;
 
-block
+blockStatement
   : '{' statementList? '}'
   ;
 
 IF : 'if';
 ELSE : 'else';
+WHILE: 'while';
+FOR: 'for';
 PRINT : 'print';
 INT : '0' | [1-9][0-9]*;
-DOUBLE: ('0' | [1-9][0-9]*) '.' ('0' | [1-9][0-9]*);
+DOUBLE: (INT) '.' (INT);
 BOOLEAN: 'true' | 'false' | '1' | '0';
 EQUALS : '=';
 IDENTIFIER : [a-zA-Z] [a-zA-Z0-9_-]*;
