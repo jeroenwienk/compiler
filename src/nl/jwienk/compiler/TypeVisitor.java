@@ -56,6 +56,10 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
 
         Type type = visit(ctx.expression());
 
+        if (symbolTable.retrieve(ctx.IDENTIFIER().getText()) == null) {
+            throw new CompilerException(ctx, ctx.IDENTIFIER().getText() + " is not defined");
+        }
+
         types.put(ctx, type);
 
         return type;

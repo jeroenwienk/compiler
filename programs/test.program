@@ -1,15 +1,20 @@
 
 
-var a = 1;
-
-var b = 2.5;
-
-for (var a = 1; a < 100; a = a + a) {
- print(a);
- b = a + a + 2.2;
- print(b);
-}
+var a = 1 + 2;
 
 print(a);
+
+var b = true;
+
 print(b);
 
+
+while (b) {
+    print(b);
+    b = false;
+    var c = 1;
+}
+
+for (var a = 1; a < 10; a = a + 1) {
+    print(b);
+}
