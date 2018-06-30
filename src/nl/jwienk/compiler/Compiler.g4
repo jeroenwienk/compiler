@@ -7,6 +7,7 @@ program
 statement
   :  blockStatement
   |  variableStatement
+  |  assignmentStatement
   |  ifStatement
   |  iterationStatement
   |  printStatement
@@ -27,7 +28,11 @@ expression
   ;
 
 variableStatement
-  : IDENTIFIER EQUALS expression ';'
+  : VAR assignmentStatement
+  ;
+
+assignmentStatement
+  : IDENTIFIER EQUALS expression (';')?
   ;
 
 ifStatement
@@ -35,12 +40,12 @@ ifStatement
   ;
 
 iterationStatement
-  : WHILE '(' expression ')' statement                                    # WhileStatement
-  | FOR '(' expression? ';' expression? ';' expression? ')' statement     # ForStatement
+  : WHILE '(' expression ')' statement                                               #WhileStatement
+  | FOR '(' variableStatement ';' expression ';' assignmentStatement ')' statement     #ForStatement
   ;
 
 printStatement
-  : PRINT '(' expression ');'
+  : PRINT '(' expression ')' (';')?
   ;
 
 statementList
@@ -51,6 +56,7 @@ blockStatement
   : '{' statementList? '}'
   ;
 
+VAR : 'var';
 IF : 'if';
 ELSE : 'else';
 WHILE: 'while';

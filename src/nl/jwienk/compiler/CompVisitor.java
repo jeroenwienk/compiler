@@ -90,43 +90,72 @@ public class CompVisitor extends CompilerBaseVisitor<ArrayList<String>> {
 
         int storeAddress = this.storeIndex;
 
-        String identifier = ctx.IDENTIFIER().getText();
-        Symbol oldSymbol = symbolTable.retrieve(identifier);
+        String identifier = ctx.assignmentStatement().IDENTIFIER().getText();
 
-        if (oldSymbol != null && oldSymbol.getType() == type) {
-            storeAddress = oldSymbol.getAddress();
+        if (type == Type.DOUBLE) {
+            this.storeIndex++;
+            this.storeIndex++;
+            this.locals++;
+            this.locals++;
         } else {
-
-
-            if (type == Type.DOUBLE) {
-                this.storeIndex++;
-                this.storeIndex++;
-                this.locals++;
-                this.locals++;
-            } else {
-                this.storeIndex++;   
-                this.locals++;
-            }
-            
+            this.storeIndex++;
+            this.locals++;
         }
-
-        String mnemonic = Helper.getTypeMnemonic(type);
-
-        code.addAll(visit(ctx.expression()));
-        code.add(mnemonic + "store " + storeAddress);
 
         // a variable is being assigned so we have to save the type of this value for when it gets referenced
         Symbol symbol = new Symbol(ctx, identifier, type);
-        symbolTable.enter(identifier, symbol);
+        this.symbolTable.enter(identifier, symbol);
         symbol.setAddress(storeAddress);
 
-
-        System.out.println(ctx.children.size());
+        code.addAll(visit(ctx.assignmentStatement()));
 
         this.resetStack();
         return code;
     }
 
+    @Override
+    public ArrayList<String> visitAssignmentStatement(CompilerParser.AssignmentStatementContext ctx) {
+        System.out.println("# VISITING AssignmentStatement");
+        ArrayList<String> code = new ArrayList<>();
+
+        Symbol symbol = this.symbolTable.retrieve(ctx.IDENTIFIER().getText());
+
+        Type expressionType = types.get(ctx.expression());
+        Type symbolType = symbol.getType();
+
+        System.out.println(expressionType);
+        System.out.println(symbolType);
+
+        if (symbolType != expressionType) {
+            // assigned double to int?
+
+            System.out.println("ooit hier");
+
+            symbol.setType(expressionType);
+            symbol.setAddress(this.storeIndex);
+
+            if (expressionType == Type.DOUBLE) {
+                this.storeIndex++;
+                this.storeIndex++;
+                this.locals++;
+                this.locals++;
+            } else {
+                this.storeIndex++;
+                this.locals++;
+            }
+
+        }
+
+        String mnemonic = Helper.getTypeMnemonic(symbol.getType());
+
+        System.out.println(mnemonic);
+
+        code.addAll(visit(ctx.expression()));
+        code.add(mnemonic + "store " + symbol.getAddress());
+
+
+        return code;
+    }
 
     @Override
     public ArrayList<String> visitPrintStatement(CompilerParser.PrintStatementContext ctx) {
@@ -139,6 +168,7 @@ public class CompVisitor extends CompilerBaseVisitor<ArrayList<String>> {
         code.addAll(visit(ctx.expression()));
         code.add("invokevirtual java/io/PrintStream/println(" + Helper.getTypeDescriptor(expressionType) + ")V");
 
+        this.increaseStack(1);
         this.resetStack();
         return code;
     }
@@ -353,7 +383,34 @@ public class CompVisitor extends CompilerBaseVisitor<ArrayList<String>> {
     @Override
     public ArrayList<String> visitForStatement(CompilerParser.ForStatementContext ctx) {
         System.out.println("# VISITING ForStatement");
-        return new ArrayList<>();
+
+        ArrayList<String> code = new ArrayList<>();
+
+        int localLabelCount = ++labelCount;
+
+        String beforeLabel = "before_f_" + localLabelCount;
+        String thenLabel = "then_f_" + localLabelCount;
+        String endLabel = "end_f_" + localLabelCount;
+
+        this.symbolTable.openScope();
+
+        code.addAll(visit(ctx.variableStatement()));
+
+        code.add(beforeLabel + ":");
+        code.addAll(visit(ctx.expression()));
+        code.add("ifne " + thenLabel);
+        code.add("goto " + endLabel);
+        code.add(thenLabel + ":");
+        code.addAll(visit(ctx.statement()));
+        code.addAll(visit(ctx.assignmentStatement()));
+        code.add("goto " + beforeLabel);
+        code.add(endLabel + ":");
+
+        this.symbolTable.closeScope();
+
+
+
+        return code;
     }
 
     @Override

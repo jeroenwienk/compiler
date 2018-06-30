@@ -1,5 +1,15 @@
-b = 2.5;
-c = 3.4;
-a = 2.5 + 3.4 * b / 2.0;
+
+
+var a = 1;
+
+var b = 2.5;
+
+for (var a = 1; a < 100; a = a + a) {
+ print(a);
+ b = a + a + 2.2;
+ print(b);
+}
 
 print(a);
+print(b);
+

@@ -1,7 +1,7 @@
 package nl.jwienk.compiler;
 
 public enum Type {
-    INT, DOUBLE, BOOLEAN, STRING, IDENTIFIER, METHOD, STATEMENT;
+    INT, DOUBLE, BOOLEAN, METHOD, STATEMENT, STRING, IDENTIFIER,;
 
     public static boolean areCompatible(Type firstType, Type secondType) {
 

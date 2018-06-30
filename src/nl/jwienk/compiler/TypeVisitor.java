@@ -35,14 +35,14 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
         visitChildren(ctx);
         this.symbolTable.closeScope();
 
-        return null;
+        return Type.STATEMENT;
     }
 
     @Override
     public Type visitVariableStatement(CompilerParser.VariableStatementContext ctx) {
         //System.out.println("# VISITING VariableStatement");
-        Type type = visit(ctx.expression());
-        String identifier = ctx.IDENTIFIER().getText();
+        Type type = visit(ctx.assignmentStatement().expression());
+        String identifier = ctx.assignmentStatement().IDENTIFIER().getText();
 
 
         // a variable is being assigned so we have to save the type of this value for when it gets referenced
@@ -52,9 +52,18 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
     }
 
     @Override
+    public Type visitAssignmentStatement(CompilerParser.AssignmentStatementContext ctx) {
+
+        Type type = visit(ctx.expression());
+
+        types.put(ctx, type);
+
+        return type;
+    }
+
+    @Override
     public Type visitPrintStatement(CompilerParser.PrintStatementContext ctx) {
         //System.out.println("# VISITING PrintStatement");
-
         this.types.put(ctx, Type.METHOD);
         visit(ctx.expression());
         return Type.METHOD;
@@ -146,6 +155,7 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
 
         this.types.put(ctx.left, leftType);
         this.types.put(ctx.right, rightType);
+        this.types.put(ctx, Type.BOOLEAN);
 
         return Type.BOOLEAN;
     }
@@ -163,7 +173,7 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
 
         this.types.put(ctx.left, leftType);
         this.types.put(ctx.right, rightType);
-
+        this.types.put(ctx, Type.BOOLEAN);
 
         return Type.BOOLEAN;
     }
@@ -206,7 +216,13 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
     public Type visitForStatement(CompilerParser.ForStatementContext ctx) {
         //System.out.println("# VISITING ForStatement");
 
-        return null;
+        this.symbolTable.openScope();
+
+        visitChildren(ctx);
+
+        this.symbolTable.closeScope();
+
+        return Type.STATEMENT;
     }
 
     @Override
