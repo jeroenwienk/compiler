@@ -1,0 +1,14 @@
+
+var a = 3.14 * 10 + 1;
+var b = 3.14 * (10 + 1);
+var c = 2 + 2 / 2;
+var d = (2 + 2) / 2;
+var e = 10.5 - 23;
+var f = -10.5 - 23;
+
+print(a);
+print(b);
+print(c);
+print(d);
+print(e);
+print(f);

@@ -64,7 +64,7 @@ FOR: 'for';
 PRINT : 'print';
 INT : '0' | [1-9][0-9]*;
 DOUBLE: (INT) '.' (INT);
-BOOLEAN: 'true' | 'false' | '1' | '0';
+BOOLEAN: 'true' | 'false';
 EQUALS : '=';
 IDENTIFIER : [a-zA-Z] [a-zA-Z0-9_-]*;
 WS : [ \t\n\r]+ -> skip;

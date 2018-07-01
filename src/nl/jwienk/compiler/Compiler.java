@@ -14,15 +14,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-
-// TODO ADD LIMITS AND LOCALS!!!!!!!
-
 public class Compiler {
 
-    //used for testing without a file
-    private String defaultCode = "a = 5 ;  b = 4 ; a = 34 + 34 + b / 4 ;\n" +
+
+    private String defaultCode = "var a = 5 ;  var b = 4 ; a = 34 + 34 + b / 4 ;\n" +
             "print(a);" +
-            " print(34 + 2.5 - 8 /4);" +
+            " print(34 + 2.5 - 8 / 4);" +
             "if (a == 5) { print(b); }";
 
     private String startProg = ".class public {{name}}\n" +
@@ -77,10 +74,12 @@ public class Compiler {
         CompilerParser parser = new CompilerParser(tokens);
         ParseTree program = parser.program();
 
+        // first generate all the types
         TypeVisitor typeVisitor = new TypeVisitor();
         typeVisitor.visit(program);
 
-        CompVisitor visitor = new CompVisitor(name, typeVisitor.getTypes());
+        // pass the types to the code generator
+        GeneratorVisitor visitor = new GeneratorVisitor(name, typeVisitor.getTypes());
         ArrayList<String> prog = visitor.visit(program);
 
         System.out.println("\n\t\t## CODE START ##\n");
@@ -95,6 +94,7 @@ public class Compiler {
 
         String fileName = name + ".j";
 
+        // output the code to a jasmin file
         try (PrintWriter out = new PrintWriter(name + ".j")) {
             out.println(outputString);
         } catch (FileNotFoundException e) {
@@ -103,8 +103,10 @@ public class Compiler {
 
         Executor executor = new Executor();
 
+        // execute jasmin which should create a .class file
         executor.executeJar("jasmin.jar", fileName);
         System.out.println(executor.getExecutionLog());
+        // execute the generated .class file
         executor.execute(name);
         System.out.println(executor.getExecutionLog());
 

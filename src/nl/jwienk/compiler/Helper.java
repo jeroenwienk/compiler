@@ -69,10 +69,6 @@ public class Helper {
                 return "1";
             case "false":
                 return "0";
-            case "0":
-                return value;
-            case "1":
-                return value;
             default:
                 return null;
 

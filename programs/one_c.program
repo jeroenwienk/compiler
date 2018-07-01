@@ -1,0 +1,26 @@
+
+var daysPerYear = 365.242199;
+var yearsOld = 18;
+
+var daysOld = yearsOld * daysPerYear;
+
+if (daysOld > daysPerYear * 17) {
+    print(true);
+} else {
+    print(false);
+}
+
+while (yearsOld < 28) {
+    yearsOld = yearsOld + 1;
+    print(yearsOld);
+}
+
+yearsOld = 18;
+
+for (var i = 0; i < 10; i = i + 1) {
+    if (i == 5 && daysOld / yearsOld == daysPerYear) {
+        yearsOld = yearsOld - i;
+    }
+}
+
+print(yearsOld);

@@ -1,0 +1,17 @@
+
+var isGreater = false;
+var first = 10;
+var second = 20;
+
+if (second > first) {
+    isGreater = true;
+}
+
+if (isGreater) {
+    print(isGreater);
+}
+
+if (!!isGreater) {
+    print(isGreater);
+}
+

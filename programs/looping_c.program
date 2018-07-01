@@ -1,0 +1,11 @@
+for (var i = 0; i < 1000; i = i + 1) {
+    for (var j = 0; j < 10; j = j + 1) {
+        print(j);
+    }
+}
+
+var k = 0;
+while (k < 5) {
+    print(k);
+    k = k + 1;
+}

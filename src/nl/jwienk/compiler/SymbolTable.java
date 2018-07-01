@@ -13,10 +13,16 @@ public class SymbolTable {
         scopeStack = new Stack<>();
     }
 
+    /**
+     * Open a new scope
+     */
     public void openScope() {
         scopeStack.push(new ArrayList<>());
     }
 
+    /**
+     * Close the last scope on the stack
+     */
     public void closeScope() {
         List<String> topList = scopeStack.pop();
 
@@ -26,6 +32,12 @@ public class SymbolTable {
 
     }
 
+    /**
+     * Enter a value into the current scope
+     *
+     * @param name   valueName
+     * @param symbol valueSymbol
+     */
     public void enter(String name, Symbol symbol) {
         scopeStack.peek().add(name);
 
@@ -36,6 +48,12 @@ public class SymbolTable {
         symbolTable.get(name).push(symbol);
     }
 
+    /**
+     * Retrieve the first symbol based on the name
+     *
+     * @param name name of the variable
+     * @return Symbol
+     */
     public Symbol retrieve(String name) {
 
         if (symbolTable.get(name) != null && !symbolTable.get(name).empty()) {

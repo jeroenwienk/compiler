@@ -44,7 +44,6 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
         Type type = visit(ctx.assignmentStatement().expression());
         String identifier = ctx.assignmentStatement().IDENTIFIER().getText();
 
-
         // a variable is being assigned so we have to save the type of this value for when it gets referenced
         symbolTable.enter(identifier, new Symbol(ctx, identifier, type));
         types.put(ctx, type);
@@ -222,7 +221,17 @@ public class TypeVisitor extends CompilerBaseVisitor<Type> {
 
         this.symbolTable.openScope();
 
-        visitChildren(ctx);
+
+        visit(ctx.variableStatement());
+        Type expressionType = visit(ctx.expression());
+
+        if (expressionType != Type.BOOLEAN) {
+            throw new CompilerException(ctx, "for expression should evaluate to boolean value: " + ctx.expression().getText());
+        }
+
+
+        visit(ctx.assignmentStatement());
+        visit(ctx.statement());
 
         this.symbolTable.closeScope();
 
